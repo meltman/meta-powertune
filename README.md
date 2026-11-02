@@ -16,6 +16,12 @@ Falcon/U-Boot experimental work.
 the CompuLab/NXP image and includes the PowerTune Qt 5 runtime package group.
 The package group brings in PowerTuneDash, the modem provisioning package,
 Qt/QML runtime modules, fontconfig support, Liberation fonts, and logrotate.
+The Qt runtime includes `qtbase-plugins`, which provides Qt image-format
+plugins. GIF support is enabled through the Qtbase recipe's `gif`
+`PACKAGECONFIG` feature. Device 0 validation confirms
+`/usr/lib/plugins/imageformats/libqgif.so` is present and external animated
+State GIF resources render and animate. External PNG loading is also
+validated.
 
 `recipes-powertune/powertunedash/powertunedash.bb` builds the application
 using `qmake5`, installs `/usr/bin/powertunedash`, installs the service and
@@ -23,6 +29,15 @@ EGLFS KMS configuration, and installs the application logrotate rule. The
 application source is fetched by BitBake from the local PowerTuneDash Git
 repository. **Commit intended PowerTuneDash changes before building**: the
 local Git fetch does not include uncommitted source changes.
+
+The target Qt GIF decoder is Qtbase's GIF image-format plugin,
+`/usr/lib/plugins/imageformats/libqgif.so`, built by enabling
+`PACKAGECONFIG:append = " gif"` in
+`recipes-qt/qt5/qtbase_git.bbappend`. It is packaged as part of
+`qtbase-plugins`, already an explicit dependency of the PowerTune runtime
+package group. Device 0 has validated external animated State GIF rendering
+and animation; no Qt development packages or unrelated image-format plugins
+are required for this support.
 
 ## Qt fonts and display
 
@@ -36,6 +51,32 @@ The packaged `recipes-powertune/powertunedash/files/eglfs.json` config selects
 `/dev/dri/card1` and sets `"hwcursor": false`. This is the validated Device 0
 EGLFS/KMS selection; do not change it without target validation.
 
+## Qt Multimedia and warning audio
+
+Device 0 provides HDMI playback through ALSA card 0, device 0
+(`i.MX HDMI i2s-hifi-0`, `/dev/snd/pcmC0D0p`). The target-specific
+`recipes-qt/qt5/qtmultimedia_git.bbappend` disables Qt Multimedia's
+`pulseaudio` `PACKAGECONFIG` feature and explicitly retains `alsa`. This
+builds `QSoundEffect` with Qt's generic `QAudioOutput` path backed by the
+packaged ALSA plugin. Device 0 raw playback on `hw:0,0` failed with default
+S16_LE parameters; `plughw:0,0` playback succeeded and was audible. Leave
+device selection and format negotiation/conversion to Qt/ALSA; PowerTune
+must not hard-code either endpoint. PowerTune keeps the RPM,
+coolant-temperature, knock, and boost warning sounds; a cached Qt
+default-output and preferred-format check leaves them uninstantiated when no
+usable default output is available. The cached check logs one `qInfo()`
+startup diagnostic to the application log and journald: either that warning
+audio is unavailable for the session, or the selected Qt output name and
+preferred format details.
+A PulseAudio server is not required for target warning sounds, and this
+layer does not add or start PulseAudio or PipeWire for that purpose.
+
+The Device 0 ALSA device is validated, but warning playback by the rebuilt
+application still requires target runtime verification. Qt Multimedia and
+the optional GStreamer media player/camera remain packaged; the optional
+media player's backend behavior is outside this warning-audio configuration
+change and is not established here.
+
 ## systemd service and identity
 
 `powertunedash.service` starts:
@@ -46,7 +87,11 @@ EGLFS/KMS selection; do not change it without target validation.
 
 It currently runs as `root` with group `gauges`, keeps standard output and
 error in journald, and asks systemd to create `LogsDirectory=powertune` with
-mode `2775`. Moving to `User=gauges` is future work. The app recipe creates
+mode `2775`. systemd also creates a private `/run/powertune` directory with
+mode `0700` and sets `XDG_RUNTIME_DIR` to that path, so Qt does not fall back
+to `/tmp/runtime-root`. systemd assigns the runtime directory to the configured
+service user; this remains straightforward when the service later moves to
+`User=gauges`. Moving to `User=gauges` is future work. The app recipe creates
 the system `gauges` account, configures its home as `/var/lib/powertune`, and
 adds `dialout` and `video` supplementary groups.
 
@@ -90,8 +135,18 @@ environment geometry:
 
 The image includes `libubootenv-bin`, `u-boot-compulab-env`, `cl-deploy`, and
 `cl-uboot`, preserving Linux-side environment inspection and CompuLab
-deployment/recovery tools. Keep these capabilities available when changing
-bootloader packaging or image composition.
+deployment/recovery tools. `u-boot-compulab-env` is the sole package owner of
+`/etc/fw_env.config`; the PowerTune layer supplies the validated
+`/dev/mmcblk2boot0 0x3F0000 0x4000` contents through that package.
+
+The fast-eMMC boot patch and Falcon DDR/SPL/image experiments remain parked
+and are not referenced by the validated appliance U-Boot configuration.
+Device 0's maintenance environment retains `bootdelay=2` and
+`bootlist=usb_ul sd_ul emmc_ul`. Keep the experimental patch files and
+Falcon-specific recipes separate from the appliance commit.
+
+Keep the environment inspection and recovery capabilities available when
+changing bootloader packaging or image composition.
 
 ## Build and validation workflow
 

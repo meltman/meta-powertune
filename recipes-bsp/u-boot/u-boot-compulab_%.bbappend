@@ -1,6 +1,8 @@
-# Build both the known-good normal U-Boot and the CompuLab-provided
-# Falcon-mode configuration for the IOT-GATE-IMX8PLUS.
-UBOOT_CONFIG:iot-gate-imx8plus = "sd falcon"
+FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 
-UBOOT_CONFIG[falcon] = "iot-gate-imx8plus_falcon_defconfig,sdcard"
+SRC_URI += "file://fw_env.config"
 
+do_install:append() {
+    install -d ${D}${sysconfdir}
+    install -m 0644 ${WORKDIR}/fw_env.config ${D}${sysconfdir}/fw_env.config
+}

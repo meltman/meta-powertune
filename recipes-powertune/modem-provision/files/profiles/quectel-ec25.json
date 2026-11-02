@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "profile_id": "quectel-ec25",
+  "profile_revision": 1,
+  "match": {
+    "usb_vendor_id": "2c7c",
+    "usb_product_id": "0125",
+    "usb_interface_num": "02",
+    "usb_driver": "option",
+    "udev_properties": {
+      "ID_MM_PORT_TYPE_AT_PRIMARY": "1"
+    }
+  },
+  "identity": {
+    "command": "ATI",
+    "required_patterns": [
+      "(?im)^Quectel\\s*$",
+      "(?im)^EC25\\s*$"
+    ]
+  },
+  "serial": {
+    "baud_rate": 115200,
+    "command_timeout_seconds": 3
+  },
+  "settings": [
+    {
+      "query": "AT+QGPSCFG=\"autogps\"",
+      "set": "AT+QGPSCFG=\"autogps\",1",
+      "desired_value": "1",
+      "response_pattern": "(?im)^\\s*\\+QGPSCFG:\\s*\"autogps\"\\s*,\\s*(?P<value>\\d+)\\s*$"
+    }
+  ]
+}

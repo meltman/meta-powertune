@@ -1,0 +1,10 @@
+/var/log/powertune/powertunedash.log {
+    size 1M
+    rotate 3
+    missingok
+    notifempty
+    compress
+    delaycompress
+    copytruncate
+    su root gauges
+}

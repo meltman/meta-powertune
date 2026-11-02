@@ -1,0 +1,32 @@
+[Unit]
+Description=PowerTune Dashboard appliance UI
+After=systemd-udev-settle.service systemd-logind.service
+Wants=systemd-udev-settle.service
+Conflicts=weston.service weston.socket
+After=weston.service weston.socket
+StartLimitIntervalSec=60
+StartLimitBurst=5
+
+[Service]
+Type=simple
+User=root
+Group=gauges
+LogsDirectory=powertune
+LogsDirectoryMode=2775
+RuntimeDirectory=powertune
+RuntimeDirectoryMode=0700
+Environment=XDG_RUNTIME_DIR=/run/powertune
+Environment=QT_QPA_EGLFS_KMS_CONFIG=/etc/powertune/eglfs.json
+ExecStart=/usr/bin/powertunedash -platform eglfs
+Restart=on-failure
+RestartSec=2
+StandardInput=tty-fail
+StandardOutput=journal
+StandardError=journal
+TTYPath=/dev/tty7
+TTYReset=yes
+TTYVHangup=yes
+TTYVTDisallocate=yes
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,12 @@
+[Unit]
+Description=Provision persistent modem settings
+Before=ModemManager.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/libexec/powertune/modem-provision --profiles /usr/share/powertune/modem-profiles --wait-seconds 10
+RemainAfterExit=yes
+TimeoutStartSec=30
+
+[Install]
+WantedBy=multi-user.target

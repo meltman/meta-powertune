@@ -48,5 +48,9 @@ IMAGE_INSTALL:append = " \
     unzip \
     zip \
     sysstat \
+    cl-deploy \
+    cl-uboot \
+    libubootenv-bin \
+    u-boot-compulab-env \
     packagegroup-powertune-qt5-runtime \
 "

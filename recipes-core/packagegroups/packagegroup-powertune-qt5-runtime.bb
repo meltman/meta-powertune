@@ -10,6 +10,10 @@ PACKAGE_ARCH = "${MACHINE_ARCH}"
 
 RDEPENDS:${PN} = " \
     powertunedash \
+    powertune-modem-provision \
+    fontconfig-utils \
+    liberation-fonts \
+    logrotate \
     qtbase \
     qtbase-plugins \
     qtdeclarative \
@@ -24,4 +28,3 @@ RDEPENDS:${PN} = " \
     qtxmlpatterns-qmlplugins \
     qtvirtualkeyboard-qmlplugins \
 "
-

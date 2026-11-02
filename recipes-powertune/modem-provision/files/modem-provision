@@ -1,0 +1,267 @@
+#!/usr/bin/env python3
+import argparse
+import json
+import logging
+import os
+import re
+import select
+import subprocess
+import sys
+import termios
+import time
+from pathlib import Path
+
+
+LOG = logging.getLogger("powertune-modem-provision")
+SYS_TTY = Path("/sys/class/tty")
+
+
+class ProvisionError(Exception):
+    pass
+
+
+def load_profiles(directory):
+    profiles = []
+    for path in sorted(directory.glob("*.json")):
+        with path.open(encoding="utf-8") as profile_file:
+            profile = json.load(profile_file)
+        if profile.get("schema_version") != 1:
+            raise ProvisionError(f"{path}: unsupported schema_version")
+        for field in ("profile_id", "profile_revision", "match", "identity", "serial", "settings"):
+            if field not in profile:
+                raise ProvisionError(f"{path}: missing required field {field}")
+        profiles.append(profile)
+    return profiles
+
+
+def udev_properties(sysfs_path):
+    result = subprocess.run(
+        ["udevadm", "info", "--query=property", f"--path={sysfs_path}"],
+        check=False,
+        capture_output=True,
+        text=True,
+        timeout=3,
+    )
+    if result.returncode:
+        return None
+    properties = {}
+    for line in result.stdout.splitlines():
+        key, separator, value = line.partition("=")
+        if separator:
+            properties[key] = value
+    return properties
+
+
+def usb_ancestors(device_path):
+    interface = None
+    usb_device = None
+    for ancestor in device_path.parents:
+        if interface is None and (ancestor / "bInterfaceNumber").is_file():
+            interface = ancestor
+        if (ancestor / "idVendor").is_file() and (ancestor / "idProduct").is_file():
+            usb_device = ancestor
+            break
+    return interface, usb_device
+
+
+def discover_candidates(profiles):
+    candidates = []
+    pending = False
+    if not SYS_TTY.exists():
+        return candidates, pending
+    for tty_entry in SYS_TTY.iterdir():
+        tty_device = tty_entry / "device"
+        if not tty_device.exists():
+            continue
+        device_path = tty_device.resolve()
+        interface, usb_device = usb_ancestors(device_path)
+        if interface is None or usb_device is None:
+            continue
+
+        try:
+            vendor_id = (usb_device / "idVendor").read_text().strip().lower()
+            product_id = (usb_device / "idProduct").read_text().strip().lower()
+            interface_num = (interface / "bInterfaceNumber").read_text().strip().lower()
+            driver_path = interface / "driver"
+            driver = driver_path.resolve().name if driver_path.exists() else ""
+        except OSError:
+            continue
+
+        matching_profiles = [
+            profile for profile in profiles
+            if vendor_id == profile["match"]["usb_vendor_id"].lower()
+            and product_id == profile["match"]["usb_product_id"].lower()
+            and interface_num == profile["match"]["usb_interface_num"].lower()
+            and driver == profile["match"]["usb_driver"]
+        ]
+        if not matching_profiles:
+            continue
+
+        properties = udev_properties(tty_entry)
+        if properties is None:
+            pending = True
+            continue
+
+        for profile in matching_profiles:
+            if all(properties.get(key) == value
+                   for key, value in profile["match"]["udev_properties"].items()):
+                devname = properties.get("DEVNAME", f"/dev/{tty_entry.name}")
+                candidates.append((profile, Path(devname), usb_device))
+            else:
+                pending = True
+    return candidates, pending
+
+
+def open_serial(device, baud_rate):
+    baud_constant = getattr(termios, f"B{baud_rate}", None)
+    if baud_constant is None:
+        raise ProvisionError(f"unsupported serial baud rate: {baud_rate}")
+
+    fd = os.open(device, os.O_RDWR | os.O_NOCTTY | os.O_NONBLOCK)
+    try:
+        attributes = termios.tcgetattr(fd)
+        attributes[0] = 0
+        attributes[1] = 0
+        attributes[2] = termios.CLOCAL | termios.CREAD | termios.CS8
+        attributes[3] = 0
+        attributes[4] = baud_constant
+        attributes[5] = baud_constant
+        attributes[6][termios.VMIN] = 0
+        attributes[6][termios.VTIME] = 0
+        termios.tcsetattr(fd, termios.TCSANOW, attributes)
+        termios.tcflush(fd, termios.TCIOFLUSH)
+        return fd
+    except Exception:
+        os.close(fd)
+        raise
+
+
+def send_at(fd, command, timeout):
+    termios.tcflush(fd, termios.TCIFLUSH)
+    payload = (command + "\r").encode("ascii")
+    offset = 0
+    deadline = time.monotonic() + timeout
+    while offset < len(payload):
+        _, writable, _ = select.select([], [fd], [], max(0, deadline - time.monotonic()))
+        if not writable:
+            raise ProvisionError(f"timed out writing AT command: {command}")
+        offset += os.write(fd, payload[offset:])
+
+    response = bytearray()
+    while time.monotonic() < deadline:
+        readable, _, _ = select.select([fd], [], [], max(0, deadline - time.monotonic()))
+        if not readable:
+            break
+        chunk = os.read(fd, 4096)
+        if not chunk:
+            continue
+        response.extend(chunk)
+        lines = response.decode("ascii", errors="replace").replace("\r", "").split("\n")
+        if any(line.strip() == "OK" for line in lines):
+            return "\n".join(lines)
+        if any(line.strip() == "ERROR" or "ERROR" in line for line in lines):
+            raise ProvisionError(f"AT command failed ({command}): {lines}")
+    raise ProvisionError(f"AT command timed out or lacked OK ({command})")
+
+
+def verify_identity(fd, profile):
+    identity = profile["identity"]
+    response = send_at(
+        fd,
+        identity["command"],
+        profile["serial"]["command_timeout_seconds"],
+    )
+    if not all(re.search(pattern, response) for pattern in identity["required_patterns"]):
+        LOG.warning("%s: ATI response does not unambiguously match profile; no writes",
+                    profile["profile_id"])
+        return False
+    return True
+
+
+def query_value(fd, profile, setting):
+    response = send_at(
+        fd,
+        setting["query"],
+        profile["serial"]["command_timeout_seconds"],
+    )
+    match = re.search(setting["response_pattern"], response)
+    if not match:
+        raise ProvisionError(
+            f"{profile['profile_id']}: query response did not contain a recognized value"
+        )
+    return match.group("value")
+
+
+def provision_candidate(profile, device):
+    LOG.info("%s: checking candidate AT port %s", profile["profile_id"], device)
+    fd = open_serial(device, profile["serial"]["baud_rate"])
+    try:
+        if not verify_identity(fd, profile):
+            return
+
+        for setting in profile["settings"]:
+            value = query_value(fd, profile, setting)
+            if value == setting["desired_value"]:
+                LOG.info("%s: persistent setting already correct", profile["profile_id"])
+                continue
+
+            LOG.info("%s: updating persistent setting", profile["profile_id"])
+            send_at(fd, setting["set"], profile["serial"]["command_timeout_seconds"])
+            verified_value = query_value(fd, profile, setting)
+            if verified_value != setting["desired_value"]:
+                raise ProvisionError(
+                    f"{profile['profile_id']}: persistent setting verification failed"
+                )
+            LOG.info("%s: persistent setting updated and verified", profile["profile_id"])
+    finally:
+        os.close(fd)
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--profiles", type=Path, required=True)
+    parser.add_argument("--wait-seconds", type=float, default=10)
+    args = parser.parse_args()
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
+
+    try:
+        profiles = load_profiles(args.profiles)
+        if not profiles:
+            LOG.info("No modem profiles installed; nothing to provision")
+            return 0
+
+        deadline = time.monotonic() + max(0, args.wait_seconds)
+        candidates = []
+        pending = False
+        while True:
+            candidates, pending = discover_candidates(profiles)
+            if candidates or time.monotonic() >= deadline:
+                break
+            time.sleep(0.25)
+
+        if not candidates:
+            if pending:
+                LOG.info("No primary AT port became ready; nothing provisioned")
+            else:
+                LOG.info("No supported modem detected; nothing to provision")
+            return 0
+
+        by_usb_device = {}
+        for profile, device, usb_device in candidates:
+            by_usb_device.setdefault(str(usb_device), []).append((profile, device))
+
+        for usb_path, device_candidates in by_usb_device.items():
+            if len(device_candidates) != 1:
+                LOG.warning("%s: ambiguous primary AT ports; no writes", usb_path)
+                continue
+            profile, device = device_candidates[0]
+            provision_candidate(profile, device)
+        return 0
+    except (OSError, ValueError, json.JSONDecodeError, subprocess.SubprocessError,
+            ProvisionError) as error:
+        LOG.error("Provisioning failed: %s", error)
+        return 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())
