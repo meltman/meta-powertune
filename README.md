@@ -39,6 +39,42 @@ package group. Device 0 has validated external animated State GIF rendering
 and animation; no Qt development packages or unrelated image-format plugins
 are required for this support.
 
+## Development regression resource fixtures
+
+The PowerTuneDash recipe packages the regression fixture sources from
+`recipes-powertune/powertunedash/files/test-assets/` under the immutable
+`/usr/share/powertune/test-assets/` seed location. On target installation,
+each fixture is copied only when its matching filename is absent from
+`/var/lib/powertune/Logo/`; the recipe does not overwrite existing user files
+or follow/replace an existing symlink. A persistent marker prevents later
+package upgrades from reseeding files that users subsequently delete. Seeded
+files are `root:gauges` mode `0664`; newly created PowerTune data and Logo
+directories are `root:gauges` mode `2775`.
+
+The Logo directory remains mutable application/user data, not an immutable
+resource directory. Users may replace, delete, or add files there, and
+PowerTune's existing resource picker continues to use that directory. The
+fixtures are currently included in the PowerTune development image for
+validation convenience; reconsider or remove them from a future production
+image.
+
+| Fixture | Regression use |
+| --- | --- |
+| `black-cat.png` | Static external PNG and Picture/Image resource loading |
+| `state-off.png`, `state-on.png` | State Image creation, configuration, and OFF/ON switching |
+| `state-off.gif`, `state-on.gif` | State GIF creation, configuration, switching, and animated GIF loading |
+| `cars.gif` | Additional/general animated GIF decoder validation |
+
+Together these assets support Save/reload, portable Export/Import, persistent
+resource URL handling, and external image/GIF loading checks. Device 0 has
+validated external PNG loading and animated external GIF rendering; the seeded
+fixture set should still be exercised through the dashboard regression flows.
+
+HIVE must explicitly separate immutable packaged/base assets and
+configuration from mutable user assets and configuration, and retain a
+known-good immutable factory/base set so broken or deleted mutable resources
+can be restored or used as a fallback.
+
 ## Qt fonts and display
 
 `recipes-qt/qt5/qtbase_git.bbappend` enables Qt's fontconfig feature.
