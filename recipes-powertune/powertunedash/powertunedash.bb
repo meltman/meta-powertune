@@ -18,7 +18,7 @@ DEPENDS = " \
     qtmultimedia \
 "
 
-SRC_URI = "git:///work/PowerTuneDash;protocol=file;branch=imx8-qt6"
+SRC_URI = "git:///work/PowerTuneDash;protocol=file;branch=imx8-appliance"
 SRC_URI += " \
     file://powertunedash.service \
     file://eglfs.json \
