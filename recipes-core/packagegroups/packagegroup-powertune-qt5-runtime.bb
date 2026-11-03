@@ -14,6 +14,8 @@ RDEPENDS:${PN} = " \
     fontconfig-utils \
     liberation-fonts \
     logrotate \
+    networkmanager-daemon \
+    networkmanager-wifi \
     qtbase \
     qtbase-plugins \
     qtdeclarative \

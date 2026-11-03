@@ -39,6 +39,24 @@ package group. Device 0 has validated external animated State GIF rendering
 and animation; no Qt development packages or unrelated image-format plugins
 are required for this support.
 
+## NetworkManager
+
+The PowerTune Qt runtime package group explicitly installs
+`networkmanager-daemon` and `networkmanager-wifi`. Device 0 reports
+NetworkManager 1.46.0 active, system D-Bus available, QtDBus 5.15.13
+installed, and successful NetworkManager D-Bus introspection. The target has
+Wi-Fi enabled; its discovered devices include Wi-Fi `wlan0`, Wi-Fi P2P
+`p2p-dev-wlan0`, Ethernet `eth0`/`eth1`, GSM, and unmanaged CAN devices.
+These are Device 0 observations, not interface names PowerTune may assume.
+
+PowerTune's new Network settings implementation uses QtDBus directly for
+NetworkManager discovery and connection requests; NetworkManager owns
+connection-profile and credential persistence. The source change still
+requires build and Device 0 validation of scans, credentials, connection
+state, disconnection, and address reporting. The password field uses the
+existing Qt virtual keyboard and masks typed input. CAN configuration remains
+outside this networking implementation.
+
 ## Development regression resource fixtures
 
 The PowerTuneDash recipe packages the regression fixture sources from
@@ -69,11 +87,6 @@ Together these assets support Save/reload, portable Export/Import, persistent
 resource URL handling, and external image/GIF loading checks. Device 0 has
 validated external PNG loading and animated external GIF rendering; the seeded
 fixture set should still be exercised through the dashboard regression flows.
-
-HIVE must explicitly separate immutable packaged/base assets and
-configuration from mutable user assets and configuration, and retain a
-known-good immutable factory/base set so broken or deleted mutable resources
-can be restored or used as a fallback.
 
 ## Qt fonts and display
 
