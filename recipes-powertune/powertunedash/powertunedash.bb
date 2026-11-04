@@ -45,6 +45,14 @@ do_install() {
     install -m 0755 ${S}/tools/pt-usb-can.py \
         ${D}${bindir}/pt-usb-can
 
+    # Open Hondata K-Pro CAN -> PowerTune UDP integration bridge.
+    install -m 0755 ${S}/tools/kpro-powertune-bridge.py \
+        ${D}${bindir}/kpro-powertune-bridge
+    install -m 0644 ${S}/tools/kpro_can.py \
+        ${D}${bindir}/kpro_can.py
+    install -m 0644 ${S}/tools/powertune_udp.py \
+        ${D}${bindir}/powertune_udp.py
+
     install -d ${D}${systemd_system_unitdir}
     install -m 0644 ${WORKDIR}/powertunedash.service \
         ${D}${systemd_system_unitdir}/powertunedash.service
@@ -102,6 +110,9 @@ FILES:${PN} += " \
     ${bindir}/powertunedash \
     ${bindir}/pt-udp-sim \
     ${bindir}/pt-usb-can \
+    ${bindir}/kpro-powertune-bridge \
+    ${bindir}/kpro_can.py \
+    ${bindir}/powertune_udp.py \
     ${systemd_system_unitdir}/powertunedash.service \
     ${sysconfdir}/powertune/eglfs.json \
     ${sysconfdir}/logrotate.d/powertunedash \
