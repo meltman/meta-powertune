@@ -9,6 +9,7 @@ ALLOW_EMPTY:${PN} = "1"
 PACKAGE_ARCH = "${MACHINE_ARCH}"
 
 RDEPENDS:${PN} = " \
+    python3-core \
     powertunedash \
     powertune-modem-provision \
     fontconfig-utils \
