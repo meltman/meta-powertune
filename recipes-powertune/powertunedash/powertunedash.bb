@@ -42,6 +42,8 @@ do_install() {
     # Development/bench utility for exercising PowerTune's daemon UDP interface.
     install -m 0755 ${S}/tools/powertune-udp-sim.py \
         ${D}${bindir}/pt-udp-sim
+    install -m 0755 ${S}/tools/pt-usb-can.py \
+        ${D}${bindir}/pt-usb-can
 
     install -d ${D}${systemd_system_unitdir}
     install -m 0644 ${WORKDIR}/powertunedash.service \
@@ -99,6 +101,7 @@ pkg_postinst_ontarget:${PN}() {
 FILES:${PN} += " \
     ${bindir}/powertunedash \
     ${bindir}/pt-udp-sim \
+    ${bindir}/pt-usb-can \
     ${systemd_system_unitdir}/powertunedash.service \
     ${sysconfdir}/powertune/eglfs.json \
     ${sysconfdir}/logrotate.d/powertunedash \

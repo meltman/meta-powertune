@@ -10,6 +10,7 @@ PACKAGE_ARCH = "${MACHINE_ARCH}"
 
 RDEPENDS:${PN} = " \
     python3-core \
+    python3-pyserial \
     powertunedash \
     powertune-modem-provision \
     fontconfig-utils \
