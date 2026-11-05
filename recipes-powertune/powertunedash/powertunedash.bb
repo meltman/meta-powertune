@@ -22,6 +22,7 @@ SRC_URI = "git:///work/PowerTuneDash;protocol=file;branch=imx8-appliance"
 SRC_URI += " \
     file://powertunedash.service \
     file://eglfs.json \
+    file://dashboards/performance-reference-v1.txt \
     file://powertunedash.logrotate \
     file://test-assets/black-cat.png \
     file://test-assets/cars.gif \
@@ -81,6 +82,16 @@ do_install() {
     install -m 0644 ${WORKDIR}/powertunedash.logrotate \
         ${D}${sysconfdir}/logrotate.d/powertunedash
 
+    # Canonical performance-profiling dashboard.
+    install -d ${D}${datadir}/powertune/dashboards
+    install -m 0644 ${WORKDIR}/dashboards/performance-reference-v1.txt \
+        ${D}${datadir}/powertune/dashboards/performance-reference-v1.txt
+
+    # Seed the mutable PowerTune export location on a fresh image.
+    install -d ${D}${localstatedir}/lib/powertune/UserDashboards
+    install -m 0664 ${WORKDIR}/dashboards/performance-reference-v1.txt \
+        ${D}${localstatedir}/lib/powertune/UserDashboards/Dash1Export.txt
+
     install -d ${D}${datadir}/powertune/test-assets
     install -m 0644 ${WORKDIR}/test-assets/black-cat.png \
         ${D}${datadir}/powertune/test-assets/black-cat.png
@@ -138,6 +149,8 @@ FILES:${PN} += " \
     ${sysconfdir}/powertune/eglfs.json \
     ${sysconfdir}/logrotate.d/powertunedash \
     ${datadir}/powertune/test-assets \
+    ${datadir}/powertune/dashboards/performance-reference-v1.txt \
+    ${localstatedir}/lib/powertune/UserDashboards/Dash1Export.txt \
 "
 
 SYSTEMD_SERVICE:${PN} = "powertunedash.service"
