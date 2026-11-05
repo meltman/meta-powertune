@@ -36,6 +36,19 @@ SRCREV = "${AUTOREV}"
 
 S = "${WORKDIR}/git"
 
+# Build provenance from the exact fetched source revision. Git is used only at
+# build time here; the application never runs Git or needs .git. The version is
+# the commit date (reproducible for a given revision); the revision is the
+# short commit SHA. No branch is embedded: a fetched checkout cannot establish
+# it robustly.
+do_configure:prepend() {
+    rev="$(git -C ${S} rev-parse --short=7 HEAD 2>/dev/null || true)"
+    ver="$(git -C ${S} log -1 --format=%cd --date=format:%Y.%m.%d HEAD 2>/dev/null || true)"
+    export PT_BUILD_REVISION="${rev:-unknown}"
+    export PT_BUILD_VERSION="${ver:-unknown}"
+    bbnote "PowerTune build provenance: version=$PT_BUILD_VERSION revision=$PT_BUILD_REVISION"
+}
+
 do_install() {
     install -d ${D}${bindir}
     install -m 0755 ${B}/PowertuneQMLGui ${D}${bindir}/powertunedash
