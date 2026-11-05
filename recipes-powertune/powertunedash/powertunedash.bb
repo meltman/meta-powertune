@@ -53,6 +53,22 @@ do_install() {
     install -m 0644 ${S}/tools/powertune_udp.py \
         ${D}${bindir}/powertune_udp.py
 
+    # Deterministic K-Pro workload generator and profiling harness.
+    install -m 0755 ${S}/tools/kpro-workload.py \
+        ${D}${bindir}/kpro-workload
+    install -m 0644 ${S}/tools/kpro_workload.py \
+        ${D}${bindir}/kpro_workload.py
+    install -m 0755 ${S}/tools/pt-profile-workload.sh \
+        ${D}${bindir}/pt-profile-workload
+
+    install -d ${D}${datadir}/powertune/kpro-workloads
+    install -m 0644 ${S}/tests/fixtures/hondata/*.json \
+        ${D}${datadir}/powertune/kpro-workloads/
+
+    install -d ${D}${datadir}/powertune/udp-workloads
+    install -m 0644 ${S}/tests/fixtures/udp/*.json \
+        ${D}${datadir}/powertune/udp-workloads/
+
     install -d ${D}${systemd_system_unitdir}
     install -m 0644 ${WORKDIR}/powertunedash.service \
         ${D}${systemd_system_unitdir}/powertunedash.service
@@ -113,6 +129,11 @@ FILES:${PN} += " \
     ${bindir}/kpro-powertune-bridge \
     ${bindir}/kpro_can.py \
     ${bindir}/powertune_udp.py \
+    ${bindir}/kpro-workload \
+    ${bindir}/kpro_workload.py \
+    ${bindir}/pt-profile-workload \
+    ${datadir}/powertune/kpro-workloads \
+    ${datadir}/powertune/udp-workloads \
     ${systemd_system_unitdir}/powertunedash.service \
     ${sysconfdir}/powertune/eglfs.json \
     ${sysconfdir}/logrotate.d/powertunedash \
