@@ -21,6 +21,9 @@ DEPENDS = " \
 SRC_URI = "git:///work/PowerTuneDash;protocol=file;branch=imx8-appliance"
 SRC_URI += " \
     file://powertunedash.service \
+    file://powertune-can.service \
+    file://powertune-kpro-bridge.service \
+    file://powertune-appliance.conf \
     file://eglfs.json \
     file://dashboards/performance-reference-v1.txt \
     file://powertunedash.logrotate \
@@ -86,8 +89,14 @@ do_install() {
     install -d ${D}${systemd_system_unitdir}
     install -m 0644 ${WORKDIR}/powertunedash.service \
         ${D}${systemd_system_unitdir}/powertunedash.service
+    install -m 0644 ${WORKDIR}/powertune-can.service \
+        ${D}${systemd_system_unitdir}/powertune-can.service
+    install -m 0644 ${WORKDIR}/powertune-kpro-bridge.service \
+        ${D}${systemd_system_unitdir}/powertune-kpro-bridge.service
 
     install -d ${D}${sysconfdir}/powertune
+    install -m 0644 ${WORKDIR}/powertune-appliance.conf \
+        ${D}${sysconfdir}/powertune/powertune-appliance.conf
     install -m 0644 ${WORKDIR}/eglfs.json \
         ${D}${sysconfdir}/powertune/eglfs.json
 
@@ -159,6 +168,9 @@ FILES:${PN} += " \
     ${datadir}/powertune/kpro-workloads \
     ${datadir}/powertune/udp-workloads \
     ${systemd_system_unitdir}/powertunedash.service \
+    ${systemd_system_unitdir}/powertune-can.service \
+    ${systemd_system_unitdir}/powertune-kpro-bridge.service \
+    ${sysconfdir}/powertune/powertune-appliance.conf \
     ${sysconfdir}/powertune/eglfs.json \
     ${sysconfdir}/logrotate.d/powertunedash \
     ${datadir}/powertune/test-assets \
@@ -166,5 +178,10 @@ FILES:${PN} += " \
     ${localstatedir}/lib/powertune/UserDashboards/Dash1Export.txt \
 "
 
-SYSTEMD_SERVICE:${PN} = "powertunedash.service"
+SYSTEMD_SERVICE:${PN} = "powertunedash.service powertune-can.service powertune-kpro-bridge.service"
 SYSTEMD_AUTO_ENABLE:${PN} = "enable"
+
+CONFFILES:${PN} += "${sysconfdir}/powertune/powertune-appliance.conf"
+
+# Bridge is a Python script; ip(8) configures the CAN link.
+RDEPENDS:${PN} += "python3-core iproute2"

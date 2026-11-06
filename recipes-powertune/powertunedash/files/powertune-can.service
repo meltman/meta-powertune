@@ -1,0 +1,21 @@
+[Unit]
+Description=PowerTune appliance CAN interface configuration
+After=systemd-udev-settle.service
+Wants=systemd-udev-settle.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+EnvironmentFile=/etc/powertune/powertune-appliance.conf
+# Re-running is idempotent: the link is taken down (if present) before the
+# bit timing is set, then brought up. Any failing step fails the unit and its
+# error is in the journal.
+ExecStart=echo "PowerTune CAN: interface=${PT_CAN_INTERFACE} bitrate=${PT_CAN_BITRATE} restart-ms=${PT_CAN_RESTART_MS}"
+ExecStart=ip link set ${PT_CAN_INTERFACE} down
+ExecStart=ip link set ${PT_CAN_INTERFACE} type can bitrate ${PT_CAN_BITRATE} restart-ms ${PT_CAN_RESTART_MS}
+ExecStart=ip link set ${PT_CAN_INTERFACE} up
+ExecStop=-ip link set ${PT_CAN_INTERFACE} down
+Restart=no
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,21 @@
+[Unit]
+Description=PowerTune Hondata K-Pro CAN to PowerTune UDP bridge
+Requires=powertune-can.service
+After=powertune-can.service
+StartLimitIntervalSec=60
+StartLimitBurst=5
+
+[Service]
+Type=simple
+User=gauges
+Group=gauges
+EnvironmentFile=/etc/powertune/powertune-appliance.conf
+ExecStartPre=echo "PowerTune K-Pro bridge: interface=${PT_CAN_INTERFACE} profile=${PT_KPRO_PROFILE} destination=127.0.0.1:45454"
+ExecStart=/usr/bin/kpro-powertune-bridge --can-interface ${PT_CAN_INTERFACE} --profile ${PT_KPRO_PROFILE}
+Restart=on-failure
+RestartSec=2
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
