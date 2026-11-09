@@ -24,6 +24,7 @@ SRC_URI += " \
     file://powertune-can.service \
     file://powertune-kpro-bridge.service \
     file://powertune-appliance.conf \
+    file://pt-boot-mode \
     file://eglfs.json \
     file://dashboards/performance-reference-v1.txt \
     file://powertunedash.logrotate \
@@ -55,6 +56,7 @@ do_configure:prepend() {
 do_install() {
     install -d ${D}${bindir}
     install -m 0755 ${B}/PowertuneQMLGui ${D}${bindir}/powertunedash
+    install -m 0755 ${WORKDIR}/pt-boot-mode ${D}${bindir}/pt-boot-mode
 
     # Development/bench utility for exercising PowerTune's daemon UDP interface.
     install -m 0755 ${S}/tools/powertune-udp-sim.py \
@@ -157,6 +159,7 @@ pkg_postinst_ontarget:${PN}() {
 
 FILES:${PN} += " \
     ${bindir}/powertunedash \
+    ${bindir}/pt-boot-mode \
     ${bindir}/pt-udp-sim \
     ${bindir}/pt-usb-can \
     ${bindir}/kpro-powertune-bridge \
@@ -184,4 +187,4 @@ SYSTEMD_AUTO_ENABLE:${PN} = "enable"
 CONFFILES:${PN} += "${sysconfdir}/powertune/powertune-appliance.conf"
 
 # Bridge is a Python script; ip(8) configures the CAN link.
-RDEPENDS:${PN} += "python3-core iproute2"
+RDEPENDS:${PN} += "python3-core iproute2 libubootenv-bin u-boot-compulab-env"

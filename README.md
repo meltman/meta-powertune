@@ -190,9 +190,19 @@ deployment/recovery tools. `u-boot-compulab-env` is the sole package owner of
 
 The fast-eMMC boot patch and Falcon DDR/SPL/image experiments remain parked
 and are not referenced by the validated appliance U-Boot configuration.
-Device 0's maintenance environment retains `bootdelay=2` and
-`bootlist=usb_ul sd_ul emmc_ul`. Keep the experimental patch files and
-Falcon-specific recipes separate from the appliance commit.
+Device 0's observed maintenance environment uses `bootdelay=2` and
+`bootlist=usb_ul sd_ul emmc_ul`. The appliance's `pt-boot-mode status`,
+`pt-boot-mode drive` and `pt-boot-mode diag` manage only `bootdelay` and
+`bootlist` using the persistent environment. DRIVE selects `0` and `emmc_ul`;
+DIAG restores `2` and `usb_ul sd_ul emmc_ul`. DRIVE bypasses USB/SD autoboot
+and removes the normal interactive delay. Confirm eMMC and an independent
+recovery route first. The tool checks the recorded Device 0 boot flow and
+refuses writes to customized scripts; it cannot validate boot media.
+Environment writes are not atomic and the tool does not reboot. The detailed
+flow, status examples, and recovery procedure are in PowerTuneDash's
+`docs/IMX8_PORT.md`. The new manager itself still needs Device 0 validation.
+Keep experimental patch files and Falcon-specific recipes separate from the
+appliance commit.
 
 Keep the environment inspection and recovery capabilities available when
 changing bootloader packaging or image composition.
