@@ -13,7 +13,7 @@ MODES = {
     "diag": {"bootdelay": "2", "bootlist": "usb_ul sd_ul emmc_ul"},
 }
 
-# These are the saved Device 0 commands, not generic distro-boot defaults.
+# Literal untouched Device 1 factory commands, not generic distro-boot defaults.
 POLICY = {
     "bootcmd": "run bsp_bootcmd",
     "bsp_bootcmd": (
@@ -22,7 +22,7 @@ POLICY = {
         "setenv bootargs ${bootargs} ${boot_opt}; if run ulbootscript; then "
         "run ulrunbootscript; fi; if run ulimage; then if run ulfdt; then "
         "booti ${loadaddr} - ${fdt_addr_r}; else if test ${boot_fdt} != yes; "
-        "then booti ${loadaddr}; fi; fi; fi; done;"
+        "then booti ${loadaddr}; fi; fi; fi; done; "
     ),
     "usb_ul": "usb start; setenv iface usb; setenv dev ${usb_dev}; setenv part ${boot_part};setenv bootargs console=${console} root=${usb_root} ${root_opt};",
     "sd_ul": "setenv iface mmc; setenv dev ${sd_dev}; setenv part ${boot_part};setenv bootargs console=${console} root=${sd_root} ${root_opt};",
