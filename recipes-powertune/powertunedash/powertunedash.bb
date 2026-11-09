@@ -57,6 +57,8 @@ do_install() {
     install -d ${D}${bindir}
     install -m 0755 ${B}/PowertuneQMLGui ${D}${bindir}/powertunedash
     install -m 0755 ${WORKDIR}/pt-boot-mode ${D}${bindir}/pt-boot-mode
+    install -m 0755 ${S}/tools/pt-car-diag.py ${D}${bindir}/pt-car-diag
+    install -m 0755 ${S}/tools/kpro-capture-analyze.py ${D}${bindir}/kpro-capture-analyze
 
     # Development/bench utility for exercising PowerTune's daemon UDP interface.
     install -m 0755 ${S}/tools/powertune-udp-sim.py \
@@ -160,6 +162,8 @@ pkg_postinst_ontarget:${PN}() {
 FILES:${PN} += " \
     ${bindir}/powertunedash \
     ${bindir}/pt-boot-mode \
+    ${bindir}/pt-car-diag \
+    ${bindir}/kpro-capture-analyze \
     ${bindir}/pt-udp-sim \
     ${bindir}/pt-usb-can \
     ${bindir}/kpro-powertune-bridge \
@@ -187,4 +191,4 @@ SYSTEMD_AUTO_ENABLE:${PN} = "enable"
 CONFFILES:${PN} += "${sysconfdir}/powertune/powertune-appliance.conf"
 
 # Bridge is a Python script; ip(8) configures the CAN link.
-RDEPENDS:${PN} += "python3-core iproute2 libubootenv-bin u-boot-compulab-env"
+RDEPENDS:${PN} += "python3-core python3-compression python3-crypt python3-datetime python3-io python3-json python3-math iproute2 can-utils coreutils libubootenv-bin u-boot-compulab-env"
