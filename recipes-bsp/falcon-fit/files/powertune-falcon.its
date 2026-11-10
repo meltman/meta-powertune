@@ -1,0 +1,60 @@
+/dts-v1/;
+
+/ {
+    description = "PowerTune i.MX8MP Falcon Linux, OP-TEE and BL31";
+    #address-cells = <1>;
+
+    images {
+        bl31 {
+            description = "Falcon BL31";
+            data = /incbin/("bl31.bin");
+            type = "firmware";
+            arch = "arm64";
+            os = "arm-trusted-firmware";
+            compression = "none";
+            load = <0x00970000>;
+            entry = <0x00970000>;
+        };
+
+        kernel {
+            description = "Linux Image";
+            data = /incbin/("Image");
+            type = "kernel";
+            arch = "arm64";
+            os = "linux";
+            compression = "none";
+            load = <0x48000000>;
+            entry = <0x48000000>;
+        };
+
+        tee {
+            description = "OP-TEE";
+            data = /incbin/("tee.bin");
+            type = "firmware";
+            arch = "arm64";
+            os = "tee";
+            compression = "none";
+            load = <0x56000000>;
+            entry = <0x56000000>;
+        };
+
+        control-fdt {
+            description = "Falcon U-Boot RDC control FDT";
+            data = /incbin/("control.dtb");
+            type = "flat_dt";
+            arch = "arm64";
+            compression = "none";
+            load = <0x43300000>;
+        };
+    };
+
+    configurations {
+        default = "conf-falcon";
+        conf-falcon {
+            description = "Candidate A";
+            firmware = "bl31";
+            loadables = "kernel", "tee";
+            fdt = "control-fdt";
+        };
+    };
+};
