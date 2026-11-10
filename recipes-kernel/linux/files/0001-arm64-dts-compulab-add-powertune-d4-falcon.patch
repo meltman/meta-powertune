@@ -1,0 +1,54 @@
+From: PowerTune <powertune@localhost>
+Subject: [PATCH] arm64: dts: compulab: add PowerTune D4 Falcon base
+
+Describe the observed D4 memory topology and OP-TEE contract in a
+separate Falcon base DT. Preserve the normal board's devices and CMA.
+Per-device firmware fixups remain a provisioning responsibility.
+
+Upstream-Status: Inappropriate [PowerTune D4 Falcon layout]
+
+--- /dev/null
++++ b/arch/arm64/boot/dts/compulab/iot-gate-imx8plus-powertune-d4-falcon.dts
+@@ -0,0 +1,42 @@
++// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
++
++#include "iot-gate-imx8plus.dts"
++
++/ {
++	memory@40000000 {
++		reg = <0x0 0x40000000 0x0 0x16000000>,
++		      <0x0 0x58000000 0x0 0xa8000000>,
++		      <0x1 0x00000000 0x0 0x40000000>;
++	};
++
++	chosen {
++		bootargs = "console=ttymxc1,115200 root=/dev/mmcblk2p2 rootwait rw";
++	};
++
++	firmware {
++		optee {
++			compatible = "linaro,optee-tz";
++			method = "smc";
++		};
++	};
++};
++
++&resmem {
++	optee_core@56000000 {
++		reg = <0x0 0x56000000 0x0 0x01e00000>;
++		no-map;
++	};
++
++	optee_shm@57e00000 {
++		reg = <0x0 0x57e00000 0x0 0x00200000>;
++		no-map;
++	};
++};
++
++/*
++ * Device 1's OP-TEE overlay reserves this job ring for secure use.
++ * Revalidate against the actual OP-TEE overlay when provisioning.
++ */
++&sec_jr2 {
++	status = "disabled";
++};
