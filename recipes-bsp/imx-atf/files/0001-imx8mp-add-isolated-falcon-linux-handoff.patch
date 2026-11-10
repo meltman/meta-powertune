@@ -1,0 +1,50 @@
+From: PowerTune <powertune@localhost>
+Subject: [PATCH] imx8mp: add isolated Falcon Linux BL33 handoff
+
+Keep the normal BL33 and OP-TEE contracts unchanged by default. Allow an
+SPL-to-BL31 OP-TEE build to select the fixed Candidate A Linux entry and
+prepared FDT addresses after the normal secure-world setup.
+
+Upstream-Status: Inappropriate [device-specific Falcon boot layout]
+
+--- a/plat/imx/imx8m/imx8mp/platform.mk
++++ b/plat/imx/imx8m/imx8mp/platform.mk
+@@ -158,6 +158,10 @@
+ RESET_TO_BL31		:=	1
+ A53_DISABLE_NON_TEMPORAL_HINT := 0
+ 
++FALCON_LINUX		?=	0
++$(eval $(call assert_boolean,FALCON_LINUX))
++$(eval $(call add_define,FALCON_LINUX))
++
+ ERRATA_A53_835769	:=	1
+ ERRATA_A53_843419	:=	1
+ ERRATA_A53_855873	:=	1
+--- a/plat/imx/imx8m/imx8mp/imx8mp_bl31_setup.c
++++ b/plat/imx/imx8m/imx8mp/imx8mp_bl31_setup.c
+@@ -31,6 +31,10 @@
+ #include <platform_def.h>
+ #include <plat_imx8.h>
+ 
++#if FALCON_LINUX && (!defined(SPD_opteed) || defined(NEED_BL2))
++#error "FALCON_LINUX requires the SPL-to-BL31 OP-TEE build"
++#endif
++
+ #if defined(LPA_ENABLE)
+ #include <sema4.h>
+ #define CPUCNT  (IMX_SRC_BASE + LPA_STATUS)
+@@ -272,6 +276,14 @@
+ #endif
+ #endif
+ 
++#if FALCON_LINUX
++	bl33_image_ep_info.pc = U(0x48000000);
++	bl33_image_ep_info.args.arg0 = U(0x43000000);
++	bl33_image_ep_info.args.arg1 = 0U;
++	bl33_image_ep_info.args.arg2 = 0U;
++	bl33_image_ep_info.args.arg3 = 0U;
++#endif
++
+ #if !defined(SPD_opteed) && !defined(SPD_trusty)
+ 	enable_snvs_privileged_access();
+ #endif
