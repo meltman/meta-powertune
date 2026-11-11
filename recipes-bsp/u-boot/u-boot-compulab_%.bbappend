@@ -19,3 +19,24 @@ do_install:append() {
 do_compile:remove() {
     export SOURCE_DATE_EPOCH=$(date +%s)
 }
+
+do_deploy:append() {
+    falcon_build="${B}/iot-gate-imx8plus_falcon_defconfig"
+    falcon_ddr="${falcon_build}/u-boot-spl-ddr.bin"
+    deploy_name="u-boot-spl-ddr.bin-${MACHINE}-falcon"
+
+    [ -f "${falcon_ddr}" ] || \
+        bbfatal "Missing Falcon Binman SPL+DDR payload: ${falcon_ddr}"
+
+    # Require Binman to have patched the image-position/size symbol block.
+    grep -aq 'BSYM' "${falcon_ddr}" || \
+        bbfatal "Falcon SPL+DDR payload lacks patched Binman symbols"
+
+    install -m 0644 \
+        "${falcon_ddr}" \
+        "${DEPLOYDIR}/${deploy_name}"
+
+    sha256sum \
+        "${DEPLOYDIR}/${deploy_name}" \
+        > "${DEPLOYDIR}/${deploy_name}.sha256"
+}

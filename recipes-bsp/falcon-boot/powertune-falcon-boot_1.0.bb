@@ -33,14 +33,20 @@ do_compile() {
         bbfatal "Falcon SPL does not match the reviewed Candidate A"
 
     install -m 0644 "$spl" "${S}/iMX8M/u-boot-spl.bin"
-    for firmware in ${DDR_FIRMWARE_NAME}; do
-        [ -f "${DEPLOY_DIR_IMAGE}/$firmware" ] || bbfatal "Missing DDR firmware: $firmware"
-        install -m 0644 "${DEPLOY_DIR_IMAGE}/$firmware" "${S}/iMX8M/$firmware"
-    done
+
+    falcon_ddr="${DEPLOY_DIR_IMAGE}/u-boot-spl-ddr.bin-${MACHINE}-falcon"
+    [ -f "$falcon_ddr" ] || \
+        bbfatal "Missing deployed Falcon Binman SPL+DDR payload: $falcon_ddr"
+
+    grep -aq 'BSYM' "$falcon_ddr" || \
+        bbfatal "Falcon SPL+DDR payload lacks patched Binman symbols"
+
+    install -m 0644 "$falcon_ddr" "${S}/iMX8M/u-boot-spl-ddr.bin"
+
     oe_runmake -C "${S}/iMX8M" -f soc.mak SOC=iMX8MP SOC_DIR=iMX8M \
         CC="${BUILD_CC}" \
         CFLAGS="${BUILD_CFLAGS} -std=c99 -I${STAGING_INCDIR_NATIVE} -L${STAGING_LIBDIR_NATIVE}" \
-        BUILD_LDFLAGS="${BUILD_LDFLAGS}" u-boot-spl-ddr.bin mkimage_imx8
+        BUILD_LDFLAGS="${BUILD_LDFLAGS}" mkimage_imx8
 
     cd "${S}/iMX8M"
     ./mkimage_imx8 -version v2 -fit -loader u-boot-spl-ddr.bin 0x920000 \
@@ -50,11 +56,16 @@ do_compile() {
     dd if=/dev/zero bs=96 count=1 >> "${FALCON_BOOT_NAME}" || \
         bbfatal "Failed to pad Falcon ROM load extent"
     python3 "${WORKDIR}/verify-falcon-boot.py" "${FALCON_BOOT_NAME}" \
-        u-boot-spl.bin "${DEPLOY_DIR_IMAGE}/u-boot-spl.bin-${MACHINE}-sd" . \
+        u-boot-spl.bin \
+        "${DEPLOY_DIR_IMAGE}/u-boot-spl.bin-${MACHINE}-sd" \
+        u-boot-spl-ddr.bin "${DEPLOY_DIR_IMAGE}" \
         > falcon-container-verification.txt || \
         bbfatal "Falcon container verification failed"
-    sha256sum "${FALCON_BOOT_NAME}" u-boot-spl.bin u-boot-spl-ddr.bin \
-        ${DDR_FIRMWARE_NAME} > falcon-container-inputs.sha256
+    sha256sum \
+        "${FALCON_BOOT_NAME}" \
+        u-boot-spl.bin \
+        u-boot-spl-ddr.bin \
+        > falcon-container-inputs.sha256
 }
 
 do_deploy() {
