@@ -22,7 +22,7 @@ do_compile[depends] += " \
 do_configure[noexec] = "1"
 do_install[noexec] = "1"
 
-FALCON_SPL_SHA256 = "23563bec023a74e580ef93a09dddd4c214bf64c7b9562fd00fcc5c4584b333e4"
+FALCON_SPL_SHA256 = "b45f0173ef22c4e6797c9200c549fa2e513c49cf627a407f5c2e78784ed959bc"
 FALCON_BOOT_NAME = "flash.bin_iot-gate-imx8plus_falcon_d4"
 
 do_compile() {
