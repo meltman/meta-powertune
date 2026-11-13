@@ -54,3 +54,11 @@ IMAGE_INSTALL:append = " \
     u-boot-compulab-env \
     packagegroup-powertune-qt5-runtime \
 "
+
+# Falcon runtime payloads are packaged into /boot so the CompuLab
+# rootfs-backed Wic boot partition carries them into the image.
+IMAGE_INSTALL:append = " powertune-falcon-fit"
+
+# Falcon adds the Linux FIT alongside the conventional kernel payloads.
+# Leave sufficient boot-partition headroom for future kernel/FIT growth.
+WKS_BOOT_SIZE = "256M"

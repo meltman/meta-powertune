@@ -21,7 +21,24 @@ do_compile[depends] += " \
 "
 
 do_configure[noexec] = "1"
-do_install[noexec] = "1"
+do_install() {
+    install -d "${D}/boot"
+
+    install -m 0644 "${B}/Image.itb" \
+        "${D}/boot/Image.itb"
+
+    install -m 0644 "${DEPLOY_DIR_IMAGE}/iot-gate-imx8plus-falcon.dtb" \
+        "${D}/boot/iot-gate-imx8plus-falcon.dtb"
+
+    install -m 0644 "${DEPLOY_DIR_IMAGE}/iot-gate-imx8plus-falcon-control.dtb" \
+        "${D}/boot/iot-gate-imx8plus-falcon-control.dtb"
+}
+
+FILES:${PN} += " \
+    /boot/Image.itb \
+    /boot/iot-gate-imx8plus-falcon.dtb \
+    /boot/iot-gate-imx8plus-falcon-control.dtb \
+"
 
 do_compile() {
     (cd "${DEPLOY_DIR_IMAGE}" && \

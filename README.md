@@ -196,7 +196,7 @@ Device 0's observed maintenance environment uses `bootdelay=2` and
 `bootlist` using the persistent environment. DRIVE selects `0` and `emmc_ul`;
 DIAG restores `2` and `usb_ul sd_ul emmc_ul`. DRIVE bypasses USB/SD autoboot
 and removes the normal interactive delay. Confirm eMMC and an independent
-recovery route first. The tool checks the recorded Device 0 boot flow and
+recovery route first. The tool checks the untouched Device 1 factory boot policy and
 refuses writes to customized scripts; it cannot validate boot media.
 Environment writes are not atomic and the tool does not reboot. The detailed
 flow, status examples, and recovery procedure are in PowerTuneDash's
