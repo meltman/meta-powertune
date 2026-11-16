@@ -22,8 +22,8 @@ do_compile[depends] += " \
 do_configure[noexec] = "1"
 do_install[noexec] = "1"
 
-# Experimental F6 isolated HSIO USB clock-module enable.
-FALCON_SPL_SHA256 = "7d270fa1fa7ea20a4724eb672b6a98cd6cba1818b2d226085a5dd32407ab0d57"
+# Experimental F7 HSIO/USB1 PHY accessibility diagnostic.
+FALCON_SPL_SHA256 = "6571fdcc0d8b291aea86bb66b19d928914f9237221688003ec38213b9c5c6d03"
 FALCON_BOOT_NAME = "flash.bin_iot-gate-imx8plus_falcon_d4"
 
 do_compile() {
