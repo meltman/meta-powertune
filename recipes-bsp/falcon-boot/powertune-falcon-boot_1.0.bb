@@ -23,7 +23,7 @@ do_configure[noexec] = "1"
 do_install[noexec] = "1"
 
 # Read-only pre-jump USB register diagnostic.
-FALCON_SPL_SHA256 = "25f6210f7c82c306f3f83d8c1416a01a22886fcdab048bb7dc4b94f492f8cf8"
+FALCON_SPL_SHA256 = "25f6210f7c82c306f3f83d8c1416a01a22886fcdab048bb7dc4b94f492f8cf8b"
 FALCON_BOOT_NAME = "flash.bin_iot-gate-imx8plus_falcon_d4"
 
 do_compile() {
