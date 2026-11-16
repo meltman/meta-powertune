@@ -22,8 +22,8 @@ do_compile[depends] += " \
 do_configure[noexec] = "1"
 do_install[noexec] = "1"
 
-# Experimental F4, pending Device1 cold hardware validation.
-FALCON_SPL_SHA256 = "07f9d7c5b97a29159a1d2f91975f9a8d1fb3f19c336140c245fed0392fa2cbe8"
+# Experimental F5 diagnostic, pending Device1 cold hardware validation.
+FALCON_SPL_SHA256 = "579bf5347331495a42eff8b217acb5daf343a2411102cc6abb330bdc28a8f50c"
 FALCON_BOOT_NAME = "flash.bin_iot-gate-imx8plus_falcon_d4"
 
 do_compile() {
