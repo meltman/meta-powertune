@@ -6,6 +6,7 @@ SRC_URI:append = " \
 
 SRC_URI:append:iot-gate-imx8plus = " \
     file://0001-arm64-dts-compulab-add-powertune-d4-falcon.patch \
+    file://0002-arm64-dts-compulab-release-usb-resets.patch \
 "
 
 do_compile:append:iot-gate-imx8plus() {
