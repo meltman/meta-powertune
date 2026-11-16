@@ -9,7 +9,7 @@ Upstream-Status: Inappropriate [PowerTune D4 Falcon layout]
 
 --- /dev/null
 +++ b/arch/arm64/boot/dts/compulab/iot-gate-imx8plus-powertune-d4-falcon.dts
-@@ -0,0 +1,42 @@
+@@ -0,0 +1,50 @@
 +// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
 +
 +#include "iot-gate-imx8plus.dts"
@@ -51,4 +51,12 @@ Upstream-Status: Inappropriate [PowerTune D4 Falcon layout]
 + */
 +&sec_jr2 {
 +	status = "disabled";
++};
++
++&usb_hub_reset {
++	/delete-property/ initially-in-reset;
++};
++
++&usb2_vbus_en {
++	/delete-property/ initially-in-reset;
 +};
