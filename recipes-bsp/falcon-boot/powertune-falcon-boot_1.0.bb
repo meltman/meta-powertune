@@ -22,8 +22,8 @@ do_compile[depends] += " \
 do_configure[noexec] = "1"
 do_install[noexec] = "1"
 
-# Experimental F7 HSIO/USB1 PHY accessibility diagnostic.
-FALCON_SPL_SHA256 = "6571fdcc0d8b291aea86bb66b19d928914f9237221688003ec38213b9c5c6d03"
+# Experimental F8 bounded HSIOMIX/USB1 PHY power-up diagnostic.
+FALCON_SPL_SHA256 = "0f93c493dffe9583b9d7ef24138dc119a9e045f2b86d2762600a1b881ed10bb4"
 FALCON_BOOT_NAME = "flash.bin_iot-gate-imx8plus_falcon_d4"
 
 do_compile() {
