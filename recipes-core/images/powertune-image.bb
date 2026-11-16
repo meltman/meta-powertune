@@ -48,10 +48,12 @@ IMAGE_INSTALL:append = " \
     unzip \
     zip \
     sysstat \
+    linux-firmware-ax210 \
     cl-deploy \
     cl-uboot \
     libubootenv-bin \
     u-boot-compulab-env \
+    powertune-appliance-policy \
     packagegroup-powertune-qt5-runtime \
 "
 

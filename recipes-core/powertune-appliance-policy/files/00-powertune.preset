@@ -1,0 +1,9 @@
+# Fallbacks for units without an owner-level SYSTEMD_AUTO_ENABLE setting.
+disable NetworkManager-wait-online.service
+disable avahi-daemon.socket
+disable syslog.socket
+disable systemd-network-generator.service
+disable systemd-networkd.service
+disable systemd-networkd.socket
+disable systemd-networkd-wait-online.service
+disable systemd-networkd-wait-online@.service

@@ -1,5 +1,5 @@
 SUMMARY = "Declarative modem hardware provisioning for PowerTune platforms"
-DESCRIPTION = "Applies and verifies persistent modem settings before ModemManager starts"
+DESCRIPTION = "Applies and verifies persistent modem settings when explicitly run"
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=c517258fbb807ea861b6f07fb902d44e"
 
@@ -7,7 +7,6 @@ SRC_URI = " \
     file://LICENSE \
     file://modem-provision \
     file://powertune-modem-provision.service \
-    file://ModemManager.service.d/10-powertune-modem-provision.conf \
     file://profiles/quectel-ec25.json \
 "
 
@@ -31,10 +30,6 @@ do_install() {
     install -d ${D}${systemd_system_unitdir}
     install -m 0644 ${WORKDIR}/powertune-modem-provision.service \
         ${D}${systemd_system_unitdir}/powertune-modem-provision.service
-
-    install -d ${D}${systemd_system_unitdir}/ModemManager.service.d
-    install -m 0644 ${WORKDIR}/ModemManager.service.d/10-powertune-modem-provision.conf \
-        ${D}${systemd_system_unitdir}/ModemManager.service.d/10-powertune-modem-provision.conf
 }
 
 FILES:${PN} += " \
@@ -42,8 +37,7 @@ FILES:${PN} += " \
     ${datadir}/licenses/${PN}/LICENSE \
     ${datadir}/powertune/modem-profiles/quectel-ec25.json \
     ${systemd_system_unitdir}/powertune-modem-provision.service \
-    ${systemd_system_unitdir}/ModemManager.service.d/10-powertune-modem-provision.conf \
 "
 
 SYSTEMD_SERVICE:${PN} = "powertune-modem-provision.service"
-SYSTEMD_AUTO_ENABLE:${PN} = "enable"
+SYSTEMD_AUTO_ENABLE:${PN}:iot-gate-imx8plus = "disable"

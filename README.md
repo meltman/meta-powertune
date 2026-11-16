@@ -168,10 +168,73 @@ not govern NMEA retention.
 ## Compositor and containers
 
 Weston remains available in the image, but its service auto-enable is disabled
-for the direct EGLFS product UI. The dashboard service conflicts with
-`weston.service` and `weston.socket`. Docker and containerd service
-auto-enable are also disabled. Do not remove packages or alter this policy
-without confirming current product requirements.
+for the direct EGLFS product UI. Docker and containerd service auto-enable are
+also disabled. Do not remove packages or alter this policy without confirming
+current product requirements.
+
+## Appliance startup policy
+
+`powertune-appliance-policy` moves the i.MX runtime tuning out of
+`rc.local.etc` into sysctl and tmpfiles configuration, keeps `canC` and `canE`
+unmanaged by NetworkManager, and makes CompuLab root-filesystem expansion a
+first-boot-only operation. The growfs unit and package remain installed; its
+completion marker is written only after a successful service start. The
+marker is `/etc/powertune/.rootfs-grown`, on the persistent root filesystem,
+so a virgin image expands once and subsequent boots skip the operation.
+
+NetworkManager is the intended IP network manager and remains enabled;
+`NetworkManager-wait-online.service` is disabled because no appliance service
+requires `network-online.target`. Its owning recipe removes the `Also=`
+relationship that would enable wait-online alongside NetworkManager, while
+the appliance preset prevents preset-based enabling. The systemd `networkd`
+feature remains built for recovery/deployment flexibility, but its services
+and socket are disabled by the appliance preset. The systemd recipe also
+removes the network-generator enable preset and its `Also=` relationship from
+networkd, so generator startup is not reintroduced when networkd is enabled.
+`systemd-resolved` and `systemd-timesyncd` remain enabled. Legacy DHCP, time,
+syslog, firewall, discovery, scheduling, and NFS
+packages are retained where dependencies or hardware ownership are not
+established, but their normal service auto-enablement is disabled. The owning
+recipes' `SYSTEMD_AUTO_ENABLE` settings provide those disable presets. The
+appliance preset is reserved for units not individually controlled by those
+recipes (NetworkManager-wait-online, the Avahi socket, syslog socket, and
+systemd-networkd/network-generator units). This image's preset pass is
+`enable-only`: these fallback rules prevent wildcard defaults from enabling
+those units, but do not remove an already-installed wants symlink. The
+NetworkManager and systemd recipe changes also prevent their `Also=` and
+upstream preset rules from creating the wait-online/generator links. The GPU
+link and the CompuLab package-install enable hook are removed at their owning
+recipe surfaces; inspect all final rootfs wants links before deployment.
+Journald remains the system log.
+
+The CompuLab `ie`, `gw`, and `stack` configuration services, ModemManager, and
+the PowerTune modem-provision service remain installed for manual or later
+hardware-triggered validation, but do not start as part of normal boot. GPS,
+GNSS, Bluetooth, SSH, serial console, firmwared, and CompuLab hardware utility
+packages are retained. Device 1 has no EC25 modem; removing cellular or GNSS
+functionality is not authorized before Device 0 validation.
+
+Psplash service auto-enablement and the GPU configuration service's manual
+enablement link are disabled for the direct EGLFS appliance. The packages
+remain available. This policy has not yet been validated by a rebuilt image
+or on Device 1. The iot-gate config recipe's custom package-install enable
+hook is replaced by `SYSTEMD_AUTO_ENABLE = "disable"`; the GPU recipe's
+image-installed wants link is removed in `do_install`. Confirm the finished
+rootfs service links and perform controlled hardware validation before
+deployment.
+
+The image includes `linux-firmware-ax210`. Its BSP recipe installs firmware
+under `${nonarch_base_libdir}/firmware`; for this usrmerge image that resolves
+under `/usr/lib/firmware`. OE-Core's image rootfs preprocessing creates the
+compatibility `/lib` symlink. Verify that the final image contains
+`/lib -> usr/lib` and resolves the AX210 firmware through `/lib/firmware`;
+do not add a target-side symlink workaround.
+
+The `fsl-rc-local` recipe fetches `file://rc.local.etc`; the machine-scoped
+append prepends this layer's `recipes-fsl/fsl-rc-local/files` to `FILESEXTRAPATHS`,
+so the installed `/etc/rc.local` uses the no-op replacement rather than the
+BSP tuning script. The desired sysctl values are installed separately:
+`kernel.printk = 4 4 1 7`, `vm.min_free_kbytes = 30000`, and THP `madvise`.
 
 ## U-Boot environment and recovery
 

@@ -1,9 +1,6 @@
 [Unit]
 Description=PowerTune Dashboard appliance UI
-After=systemd-udev-settle.service systemd-logind.service
-Wants=systemd-udev-settle.service
-Conflicts=weston.service weston.socket
-After=weston.service weston.socket
+After=systemd-logind.service
 StartLimitIntervalSec=60
 StartLimitBurst=5
 
