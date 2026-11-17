@@ -22,8 +22,8 @@ do_compile[depends] += " \
 do_configure[noexec] = "1"
 do_install[noexec] = "1"
 
-# Experimental F11 read-only PMIC snapshot before F9/F10 USB setup.
-FALCON_SPL_SHA256 = "b353801b813cc3f4cf22f18cf03f4dcd1ecf485dd86151c30e0389af96040141"
+# Experimental F12 restore CompuLab 1.8V LDO4 state before USB setup.
+FALCON_SPL_SHA256 = "c592697e3ed3d432c5fcc3782b21e60025b964b14433aad9fab30ce718d5d21c"
 FALCON_BOOT_NAME = "flash.bin_iot-gate-imx8plus_falcon_d4"
 
 do_compile() {
