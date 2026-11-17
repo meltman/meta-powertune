@@ -1,0 +1,16 @@
+#!/bin/sh
+
+interface=${1:?CAN interface is required}
+attempts=0
+
+while [ ! -d "/sys/class/net/$interface" ]; do
+    if [ "$attempts" -ge 50 ]; then
+        echo "PowerTune CAN: interface '$interface' not found after 5 seconds" >&2
+        exit 1
+    fi
+    if ! sleep 0.1; then
+        echo "PowerTune CAN: failed while waiting for interface '$interface'" >&2
+        exit 1
+    fi
+    attempts=$((attempts + 1))
+done

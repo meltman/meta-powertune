@@ -22,6 +22,7 @@ SRC_URI = "git:///work/PowerTuneDash;protocol=file;branch=imx8-appliance"
 SRC_URI += " \
     file://powertunedash.service \
     file://powertune-can.service \
+    file://pt-wait-can-interface \
     file://powertune-kpro-bridge.service \
     file://powertune-appliance.conf \
     file://pt-boot-mode \
@@ -57,6 +58,7 @@ do_install() {
     install -d ${D}${bindir}
     install -m 0755 ${B}/PowertuneQMLGui ${D}${bindir}/powertunedash
     install -m 0755 ${WORKDIR}/pt-boot-mode ${D}${bindir}/pt-boot-mode
+    install -m 0755 ${WORKDIR}/pt-wait-can-interface ${D}${bindir}/pt-wait-can-interface
     install -m 0755 ${S}/tools/pt-car-diag.py ${D}${bindir}/pt-car-diag
     install -m 0755 ${S}/tools/kpro-capture-analyze.py ${D}${bindir}/kpro-capture-analyze
 
@@ -162,6 +164,7 @@ pkg_postinst_ontarget:${PN}() {
 FILES:${PN} += " \
     ${bindir}/powertunedash \
     ${bindir}/pt-boot-mode \
+    ${bindir}/pt-wait-can-interface \
     ${bindir}/pt-car-diag \
     ${bindir}/kpro-capture-analyze \
     ${bindir}/pt-udp-sim \

@@ -9,6 +9,7 @@ EnvironmentFile=/etc/powertune/powertune-appliance.conf
 # bit timing is set, then brought up. Any failing step fails the unit and its
 # error is in the journal.
 ExecStart=echo "PowerTune CAN: interface=${PT_CAN_INTERFACE} bitrate=${PT_CAN_BITRATE} restart-ms=${PT_CAN_RESTART_MS}"
+ExecStart=/usr/bin/pt-wait-can-interface ${PT_CAN_INTERFACE}
 ExecStart=ip link set ${PT_CAN_INTERFACE} down
 ExecStart=ip link set ${PT_CAN_INTERFACE} type can bitrate ${PT_CAN_BITRATE} restart-ms ${PT_CAN_RESTART_MS}
 ExecStart=ip link set ${PT_CAN_INTERFACE} up
