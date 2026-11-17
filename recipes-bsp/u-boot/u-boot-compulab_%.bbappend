@@ -1,7 +1,7 @@
 FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 
 SRCBRANCH = "imx8mp-falcon-4g"
-SRCREV = "69acc3b3b3c37882c7449294dd57b324e8457cae"
+SRCREV = "1138825790f4712aeadef93f2b73835e2000e153"
 export SOURCE_DATE_EPOCH = "1794412504"
 SRC_URI:remove = "git://github.com/compulab-yokneam/u-boot-compulab;protocol=https;branch=${SRCBRANCH}"
 SRC_URI:prepend = "git://github.com/meltman/u-boot-compulab.git;protocol=https;branch=imx8mp-falcon-4g "

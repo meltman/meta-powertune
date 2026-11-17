@@ -4,6 +4,9 @@ Last hardware validation: 2026-11-13
 
 This document is the source of truth for the currently validated Falcon boot
 implementation on the CompuLab IOT-GATE-IMX8PLUS / i.MX8MP platform.
+The known-good artifacts below are historical validated artifacts; the quiet
+USB production candidate recorded separately below has not yet been hardware
+validated and is not golden.
 
 Do not reconstruct the Falcon installation procedure from memory or from old
 chat history. Use the artifacts, hashes, and procedure recorded here.
@@ -36,7 +39,7 @@ The normal boot serial banner identifies this build as:
 
 ### meta-powertune
 
-The known-good meta-powertune state pins the production Falcon U-Boot source.
+The historical known-good meta-powertune state pinned this Falcon U-Boot source.
 
 Relevant validated history includes:
 
@@ -46,6 +49,50 @@ Relevant validated history includes:
 
 The exact current Git history should always be checked before making new
 Falcon changes.
+
+The appliance kernel module policy is committed in meta-powertune at
+`ad8153a118f66345bae7fe51b9012de96fbe9bf1`.
+
+## Quiet Falcon USB Production Candidate
+
+U-Boot commit:
+
+    1138825790f4712aeadef93f2b73835e2000e153
+
+The candidate was built and its build/deploy hashes matched:
+
+| Artifact | Size | SHA-256 |
+| --- | ---: | --- |
+| Raw Falcon SPL | 185453 bytes | `f2317f3b4d0f75ab5c6218e4966c83a44fd54680657a3a18fbf210eac8373767` |
+| SPL+DDR | 246340 bytes | `38e73b62217758e44b1ff189e8ec327e62e4b548ee41752f8276c81a67a60087` |
+
+SPL nodtb is 176576 of 180224 bytes, leaving only **3648 bytes** of OCRAM
+margin. Further SPL growth requires explicit review.
+
+The Falcon boot recipe pins the candidate raw SPL hash, and the U-Boot recipe
+is pinned to `1138825790f4712aeadef93f2b73835e2000e153`. The quiet candidate
+has not yet been hardware validated and must not be treated as golden. The
+historical known-good hashes below are not the candidate's hashes.
+
+### USB root cause and validation
+
+Falcon initially reached Linux without a working downstream USB path: a
+logical GPIO VBUS assertion alone did not establish electrically working
+VBUS. CompuLab bypassed LDO4 initialization under `CONFIG_SPL_OS_BOOT`.
+F11 observed PCA9450 `LDO4CTRL=0x01` under Falcon, while normal U-Boot used
+`0x8a`. Production Falcon restores CompuLab's normal `0x8a` 1.8 V LDO4
+configuration.
+
+The required sequence is USB clocks, HSIOMIX power-up, HSIOMIX handshake
+request, USB1 PHY power-up, HSIO USB clock module enable, USB2 PHY power-up,
+and GPIO4_IO20 host VBUS assertion. F12 validated the combined sequence on
+Device1: Linux enumerated xHCI, the USB2514 hub, CH340, Dell HID receiver,
+and AX210 Bluetooth; a physical keyboard worked.
+
+The quiet candidate removes F8-F12 success diagnostics while retaining
+concise failure diagnostics. `FALCON_MEM` remains independently maintained
+FIT/heap-safety instrumentation. The F12 hardware result does not itself
+validate the quiet candidate.
 
 ## Known-Good Falcon Artifacts
 
@@ -128,6 +175,11 @@ These ownership domains must remain conceptually separate:
 
 This distinction is critical when building, flashing, diagnosing, or
 reproducing the system.
+
+On Device1, `/dev/mmcblk2boot0` holds the Falcon boot container,
+`/dev/mmcblk2p1` is the FAT partition holding the active `Image.itb`, and
+`/dev/mmcblk2p2` is the ext4 rootfs holding modules and firmware. The rootfs
+`/boot` directory is not the active Falcon FAT boot partition.
 
 ## Validated UUU Installation Procedure
 
@@ -325,6 +377,8 @@ VALIDATED:
 
 NOT YET PROVEN:
 
+- Hardware operation of the quiet USB production candidate at U-Boot commit
+  `1138825790f4712aeadef93f2b73835e2000e153`.
 - That Falcon materially improves total power-to-PowerTune time enough to
   justify further Falcon optimization.
 - Final Linux/userspace boot optimization.
@@ -352,7 +406,7 @@ making U-Boot benchmarks look impressive.
 
 ## Rule for Future Changes
 
-Before replacing any artifact involved in Falcon boot:
+Before treating a replacement artifact involved in Falcon boot as known-good:
 
 1. Identify its source commit.
 2. Build it reproducibly.
@@ -361,6 +415,7 @@ Before replacing any artifact involved in Falcon boot:
 5. Know which physical storage domain owns it.
 6. Verify the destination after writing it.
 7. Prove the device boots.
-8. Only then commit/update this document.
+8. Only then record it as validated in this document. Candidate build evidence
+   may be recorded earlier if it is clearly identified as unvalidated.
 
 Hardware reality is authoritative.

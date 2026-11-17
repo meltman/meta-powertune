@@ -22,8 +22,8 @@ do_compile[depends] += " \
 do_configure[noexec] = "1"
 do_install[noexec] = "1"
 
-# Experimental F12 restore CompuLab 1.8V LDO4 state before USB setup.
-FALCON_SPL_SHA256 = "c592697e3ed3d432c5fcc3782b21e60025b964b14433aad9fab30ce718d5d21c"
+# Quiet Falcon USB production candidate, U-Boot 1138825790f4712aeadef93f2b73835e2000e153.
+FALCON_SPL_SHA256 = "f2317f3b4d0f75ab5c6218e4966c83a44fd54680657a3a18fbf210eac8373767"
 FALCON_BOOT_NAME = "flash.bin_iot-gate-imx8plus_falcon_d4"
 
 do_compile() {
@@ -31,7 +31,7 @@ do_compile() {
     spl="${DEPLOY_DIR_IMAGE}/u-boot-spl.bin-${MACHINE}-falcon"
     [ -f "$spl" ] || bbfatal "Missing Falcon SPL: $spl"
     printf '%s  %s\n' "${FALCON_SPL_SHA256}" "$spl" | sha256sum -c - || \
-        bbfatal "Falcon SPL does not match the reviewed Candidate A"
+        bbfatal "Falcon SPL does not match the pinned candidate"
 
     install -m 0644 "$spl" "${S}/iMX8M/u-boot-spl.bin"
 
