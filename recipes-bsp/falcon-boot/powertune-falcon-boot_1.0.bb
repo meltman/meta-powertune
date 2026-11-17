@@ -23,7 +23,7 @@ do_configure[noexec] = "1"
 do_install[noexec] = "1"
 
 # Quiet Falcon USB production candidate, U-Boot 1138825790f4712aeadef93f2b73835e2000e153.
-FALCON_SPL_SHA256 = "f2317f3b4d0f75ab5c6218e4966c83a44fd54680657a3a18fbf210eac8373767"
+FALCON_SPL_SHA256 = "a1a5b55f8e378d8670e242fafa8edc417820998374f1cfe1250ae0c4dea016bc"
 FALCON_BOOT_NAME = "flash.bin_iot-gate-imx8plus_falcon_d4"
 
 do_compile() {

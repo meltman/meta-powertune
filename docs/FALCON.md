@@ -59,20 +59,29 @@ U-Boot commit:
 
     1138825790f4712aeadef93f2b73835e2000e153
 
-The candidate was built and its build/deploy hashes matched:
+The reproducible committed-source candidate has these artifact identities:
 
 | Artifact | Size | SHA-256 |
 | --- | ---: | --- |
-| Raw Falcon SPL | 185453 bytes | `f2317f3b4d0f75ab5c6218e4966c83a44fd54680657a3a18fbf210eac8373767` |
-| SPL+DDR | 246340 bytes | `38e73b62217758e44b1ff189e8ec327e62e4b548ee41752f8276c81a67a60087` |
+| Raw Falcon SPL | 185453 bytes | `a1a5b55f8e378d8670e242fafa8edc417820998374f1cfe1250ae0c4dea016bc` |
+| SPL+DDR | 246340 bytes | `33182ed9743f704a1e7822bee1b3dbcbc34b9c1931856f578fc7d3ee740cc64c` |
+
+Earlier quiet-candidate hashes were generated before the USB changes were
+committed. U-Boot embeds its source Git identity in the version string, so
+committing the changes altered the artifact bytes. Two forced rebuilds from
+clean commit `1138825790f4712aeadef93f2b73835e2000e153`, with the pinned
+`SOURCE_DATE_EPOCH=1794412504`, produced identical SPL and SPL+DDR artifacts
+byte-for-byte. These committed-source hashes supersede the pre-commit hashes;
+the change is not ongoing timestamp nondeterminism.
 
 SPL nodtb is 176576 of 180224 bytes, leaving only **3648 bytes** of OCRAM
 margin. Further SPL growth requires explicit review.
 
 The Falcon boot recipe pins the candidate raw SPL hash, and the U-Boot recipe
 is pinned to `1138825790f4712aeadef93f2b73835e2000e153`. The quiet candidate
-has not yet been hardware validated and must not be treated as golden. The
-historical known-good hashes below are not the candidate's hashes.
+is a reproducible build candidate, but has not yet been hardware validated and
+must not be treated as golden. The historical known-good hashes below are not
+the candidate's hashes. Hardware reality remains authoritative.
 
 ### USB root cause and validation
 
