@@ -22,8 +22,8 @@ do_compile[depends] += " \
 do_configure[noexec] = "1"
 do_install[noexec] = "1"
 
-# Experimental F10 F9 USB domains plus early GPIO4_IO20 VBUS enable.
-FALCON_SPL_SHA256 = "801d140000bc2ea803383e439d9d1ad2b066101cad79d92af5f2a35bb0a2d5ea"
+# Experimental F11 read-only PMIC snapshot before F9/F10 USB setup.
+FALCON_SPL_SHA256 = "b353801b813cc3f4cf22f18cf03f4dcd1ecf485dd86151c30e0389af96040141"
 FALCON_BOOT_NAME = "flash.bin_iot-gate-imx8plus_falcon_d4"
 
 do_compile() {
