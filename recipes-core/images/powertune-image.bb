@@ -8,6 +8,9 @@ IMAGE_FEATURES:remove = "ptest-pkgs"
 
 EXTRA_IMAGE_FEATURES:remove = "ptest-pkgs"
 
+IMAGE_INSTALL:remove = "kernel-image kernel-modules"
+PACKAGE_EXCLUDE:append = " kernel-modules"
+
 IMAGE_INSTALL:append = " \
     bash \
     bash-completion \
@@ -49,6 +52,12 @@ IMAGE_INSTALL:append = " \
     zip \
     sysstat \
     linux-firmware-ax210 \
+    kernel-module-iwlwifi \
+    kernel-module-iwlmvm \
+    kernel-module-option \
+    kernel-module-usb-wwan \
+    kernel-module-qmi-wwan \
+    kernel-module-cdc-wdm \
     cl-deploy \
     cl-uboot \
     libubootenv-bin \
