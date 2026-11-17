@@ -1,12 +1,12 @@
-# PowerTune Falcon Boot - Known-Good State
+# PowerTune Falcon Boot - GOLDEN Device1
 
-Last hardware validation: 2026-11-13
+Last hardware validation: 2026-11-17
 
 This document is the source of truth for the currently validated Falcon boot
 implementation on the CompuLab IOT-GATE-IMX8PLUS / i.MX8MP platform.
-The known-good artifacts below are historical validated artifacts; the quiet
-USB production candidate recorded separately below has not yet been hardware
-validated and is not golden.
+The Stealth Falcon identities below describe the current Device1 GOLDEN
+baseline. Earlier validated artifacts and installation evidence are explicitly
+marked historical and are not interchangeable with it.
 
 Do not reconstruct the Falcon installation procedure from memory or from old
 chat history. Use the artifacts, hashes, and procedure recorded here.
@@ -22,24 +22,43 @@ The final Falcon installation and boot path documented below was validated on:
 - eMMC boot device: Linux `/dev/mmcblk2`
 - eMMC boot0: Linux `/dev/mmcblk2boot0`
 
-Device0 is the golden PowerTune appliance, but the validation recorded in this
-document was performed on Device1.
+Device1 is the new GOLDEN boot/Linux/PowerTune baseline and has an AX210 but
+currently no cellular modem. Device0 remains the golden-old reference appliance
+and cellular/GPS runtime oracle with a Quectel EC25-A; do not casually disturb
+it to repeat already-proven modem observations.
 
-## Known-Good Source State
+## GOLDEN Device1 acceptance - 2026-11-17
+
+Cold-power acceptance passed Stealth Falcon, Linux
+`6.6.52-1.0-g72608893689e`, automatic PowerTune startup with working gauges,
+cold-boot CAN configuration, deferred AX210 firmware/PNVM loading, USB host,
+hub and HID, AX210 Bluetooth USB enumeration, and zero failed systemd units.
+The native split-module policy is part of this baseline.
+
+Device1 observed USB2514 `0424:2514`, Dell Universal Receiver `413c:301c`,
+and AX210 Bluetooth `8087:0032`; physical keyboard operation was validated
+during Falcon USB work. `canC` was present/down, `canE` present/up, `eth0`
+present, `eth1` present/up, and `wlan0` present.
+
+## GOLDEN source and artifact identities
 
 ### U-Boot
 
-Production Falcon U-Boot commit:
+Stealth Falcon U-Boot commit:
 
-    69acc3b3b3c37882c7449294dd57b324e8457cae
+    1138825790f4712aeadef93f2b73835e2000e153
 
-The normal boot serial banner identifies this build as:
+The serial banner identifies this build as:
 
-    U-Boot SPL 2023.04-1.0-d4+fslc+g69acc3b3b3c+p0
+    U-Boot SPL 2023.04-1.0-d4+fslc+g1138825790f+p0
+    (Nov 11 2026 - 15:55:04 +0000)
 
 ### meta-powertune
 
-The historical known-good meta-powertune state pinned this Falcon U-Boot source.
+`2d5b1ae5dfd6856531a2c84fd4f94265fd628684` pins the reproducible
+Stealth Falcon identity. The appliance module policy is committed at
+`ad8153a118f66345bae7fe51b9012de96fbe9bf1`; the CAN cold-boot race repair
+is at `6704575a7a82050c02555a89efe648a5b104376e`.
 
 Relevant validated history includes:
 
@@ -50,21 +69,19 @@ Relevant validated history includes:
 The exact current Git history should always be checked before making new
 Falcon changes.
 
-The appliance kernel module policy is committed in meta-powertune at
-`ad8153a118f66345bae7fe51b9012de96fbe9bf1`.
-
-## Quiet Falcon USB Production Candidate
+### Reproducible Stealth Falcon artifacts
 
 U-Boot commit:
 
     1138825790f4712aeadef93f2b73835e2000e153
 
-The reproducible committed-source candidate has these artifact identities:
+The reproducible committed-source build has these artifact identities:
 
 | Artifact | Size | SHA-256 |
 | --- | ---: | --- |
 | Raw Falcon SPL | 185453 bytes | `a1a5b55f8e378d8670e242fafa8edc417820998374f1cfe1250ae0c4dea016bc` |
 | SPL+DDR | 246340 bytes | `33182ed9743f704a1e7822bee1b3dbcbc34b9c1931856f578fc7d3ee740cc64c` |
+| boot0 `flash.bin_iot-gate-imx8plus_falcon_d4` | 255072 bytes | `e91cbf902f963eac246639e94cb08af1c4f7e749157f39845cf5b56f0244710e` |
 
 Earlier quiet-candidate hashes were generated before the USB changes were
 committed. U-Boot embeds its source Git identity in the version string, so
@@ -74,36 +91,53 @@ clean commit `1138825790f4712aeadef93f2b73835e2000e153`, with the pinned
 byte-for-byte. These committed-source hashes supersede the pre-commit hashes;
 the change is not ongoing timestamp nondeterminism.
 
-SPL nodtb is 176576 of 180224 bytes, leaving only **3648 bytes** of OCRAM
+SPL nodtb is 176576 of 180224 bytes (`0x2c000`), leaving only **3648 bytes** of OCRAM
 margin. Further SPL growth requires explicit review.
 
-The Falcon boot recipe pins the candidate raw SPL hash, and the U-Boot recipe
-is pinned to `1138825790f4712aeadef93f2b73835e2000e153`. The quiet candidate
-is a reproducible build candidate, but has not yet been hardware validated and
-must not be treated as golden. The historical known-good hashes below are not
-the candidate's hashes. Hardware reality remains authoritative.
+The Falcon boot recipe pins the raw SPL hash, and the U-Boot recipe pins the
+above source commit. The resulting Stealth Falcon boot and appliance passed
+Device1 cold-power acceptance on 2026-11-17. Historical hashes below are not
+the current artifacts. Hardware reality remains authoritative.
+
+### GOLDEN Linux and FIT
+
+| Artifact | Size | SHA-256 |
+| --- | ---: | --- |
+| Active FAT `Image.itb` | 42221568 bytes | `b6aa45627d4098fb4d952aafe025f8432e4410cb692b9430fcf4c04204a8e964` |
+| Matched build `Image` | not recorded | `376cf35dc0c13c57b826631e370fc8346d0aaecfd1c60f4bfed3affd446825db` |
+| Matched build rootfs tar.zst | not recorded | `6187f1636fecd62bc32c3e73573ed2c31105a39c766c3fa2c36360ed2b92ead5` |
+| Device1 FAT rollback `Image.itb.pre-g726` | not recorded | `c0d58844f7f9dbf82e1586f2684eeaeac5dc3e8cbc0d82ea97f8075fe5a10963` |
+
+The rollback copy is at `/run/media/boot-mmcblk2p1/Image.itb.pre-g726`;
+its presence is an observation, not an automatic rollback mechanism.
 
 ### USB root cause and validation
 
 Falcon initially reached Linux without a working downstream USB path: a
 logical GPIO VBUS assertion alone did not establish electrically working
 VBUS. CompuLab bypassed LDO4 initialization under `CONFIG_SPL_OS_BOOT`.
-F11 observed PCA9450 `LDO4CTRL=0x01` under Falcon, while normal U-Boot used
-`0x8a`. Production Falcon restores CompuLab's normal `0x8a` 1.8 V LDO4
-configuration.
+F11 observed PCA9450 `LDO4CTRL=0x01` and `LOADSW_CTRL=0x85` under Falcon;
+normal U-Boot used `LDO4CTRL=0x8a` and the same `LOADSW_CTRL=0x85`.
+Production Falcon restores CompuLab's normal `0x8a` 1.8 V LDO4 configuration.
 
 The required sequence is USB clocks, HSIOMIX power-up, HSIOMIX handshake
 request, USB1 PHY power-up, HSIO USB clock module enable, USB2 PHY power-up,
-and GPIO4_IO20 host VBUS assertion. F12 validated the combined sequence on
+and SAI1_MCLK muxing to GPIO4_IO20 for host VBUS assertion. The handshake
+request is part of the validated sequence, but its acknowledgement is not
+explicitly polled or verified; do not casually change this sequence. F12
+validated the combined sequence on
 Device1: Linux enumerated xHCI, the USB2514 hub, CH340, Dell HID receiver,
 and AX210 Bluetooth; a physical keyboard worked.
 
-The quiet candidate removes F8-F12 success diagnostics while retaining
+Stealth Falcon removes F8-F12 success diagnostics while retaining
 concise failure diagnostics. `FALCON_MEM` remains independently maintained
-FIT/heap-safety instrumentation. The F12 hardware result does not itself
-validate the quiet candidate.
+FIT/SPL heap-safety instrumentation. The later cold-power acceptance validates
+the committed quiet build, separately from the earlier F12 experiment.
 
-## Known-Good Falcon Artifacts
+## Historical 2026-11-13 Falcon artifacts
+
+These are retained for provenance and are not the current GOLDEN artifacts.
+The historical U-Boot source was `69acc3b3b3c37882c7449294dd57b324e8457cae`.
 
 ### Falcon SPL
 
@@ -115,7 +149,7 @@ SHA-256:
 
     de2fe2776a3f327d7cbbc8b49a8e18db8d46a71a281cc4f85cef3f28807b7844
 
-### Production Falcon Container
+### Historical Falcon container
 
 Filename:
 
@@ -129,7 +163,8 @@ SHA-256:
 
     00e7d3839abd3d016cd482d9a9984ff586854ffb832972e036fed60d1b296b62
 
-This is the persistent Falcon bootloader container installed into eMMC boot0.
+This was the persistent Falcon bootloader container installed into eMMC boot0
+for the 2026-11-13 validation, not the current Stealth Falcon container.
 
 Do not substitute an older diagnostic or experimental `flash.bin` merely
 because the filename is the same. Verify the hash.
@@ -185,14 +220,25 @@ These ownership domains must remain conceptually separate:
 This distinction is critical when building, flashing, diagnosing, or
 reproducing the system.
 
-On Device1, `/dev/mmcblk2boot0` holds the Falcon boot container,
-`/dev/mmcblk2p1` is the FAT partition holding the active `Image.itb`, and
-`/dev/mmcblk2p2` is the ext4 rootfs holding modules and firmware. The rootfs
-`/boot` directory is not the active Falcon FAT boot partition.
+On Device1 the chain and mounts are:
+
+```text
+i.MX8MP ROM
+  -> /dev/mmcblk2boot0: Stealth Falcon boot container
+  -> /dev/mmcblk2p1: FAT, mounted at /run/media/boot-mmcblk2p1
+     -> active /run/media/boot-mmcblk2p1/Image.itb
+     -> BL31 / OP-TEE / Linux / control FDT
+  -> /dev/mmcblk2p2: ext4, mounted at /
+     -> rootfs, modules, firmware, services and PowerTune
+```
+
+`/boot/Image.itb` on the ext4 rootfs is **not** the active Falcon FIT.
+The image build can stage it there for Wic; changing it on a running device
+does not update the FAT copy. Verify the destination before any update.
 
 ## Validated UUU Installation Procedure
 
-The Falcon bootloader is installed using TWO artifacts:
+Stealth Falcon installation was validated using TWO artifacts:
 
 1. Full EVK/full-U-Boot image used only as the ROM/USB bootstrap.
 2. Production Falcon container written persistently to eMMC boot0.
@@ -263,9 +309,9 @@ During installation:
 The full U-Boot image is therefore an installation/recovery tool. It is not
 the production Falcon bootloader left running from eMMC.
 
-## Observed Successful UUU Write
+## Historical 2026-11-13 UUU write
 
-During the final Device1 installation, UUU downloaded exactly:
+During the earlier Device1 installation, UUU downloaded exactly:
 
     254048 bytes
 
@@ -288,9 +334,9 @@ UUU commands selected the correct eMMC device, MMC 2. Do not interpret the
 initial MMC 0 diagnostic messages as a failed installation if the subsequent
 commands explicitly select MMC 2 and the final bootloader write succeeds.
 
-## Validated Normal Boot
+## Historical 2026-11-13 normal boot
 
-After the final installation and reset, Device1 produced:
+After that historical installation and reset, Device1 produced:
 
     U-Boot SPL 2023.04-1.0-d4+fslc+g69acc3b3b3c+p0
     ...
@@ -314,7 +360,7 @@ The validated production path is therefore:
         ->
     Linux
 
-## Physical boot0 Verification
+## Historical 2026-11-13 physical boot0 verification
 
 After the successful normal boot, the installed Falcon container was verified
 directly from Device1:
@@ -325,7 +371,7 @@ Result:
 
     00e7d3839abd3d016cd482d9a9984ff586854ffb832972e036fed60d1b296b62  -
 
-This exactly matches the known-good production Falcon artifact.
+This matched the historical Falcon artifact, not the Stealth Falcon hash.
 
 As of 2026-11-13, the chain has therefore been validated end to end:
 
@@ -368,7 +414,7 @@ verified.
 
 ## Current Status
 
-VALIDATED:
+VALIDATED on Device1:
 
 - Production Falcon U-Boot source state.
 - Clean SPL artifact.
@@ -379,15 +425,17 @@ VALIDATED:
 - Fastboot installation of Falcon into eMMC boot0.
 - eMMC boot0 selection.
 - Normal Falcon boot from MMC2.
-- Direct SHA-256 verification of physical boot0 contents.
+- Direct SHA-256 verification of physical boot0 contents for the historical
+  2026-11-13 container as documented above.
 - Linux boot through Falcon.
 - Wi-Fi functional with the correctly matched Linux/rootfs state.
+- Stealth Falcon cold-power boot and automatic PowerTune startup to gauges.
+- CAN startup, AX210 deferred firmware and PNVM loading, USB/HID and Bluetooth
+  enumeration, and zero failed systemd units on the accepted cold boot.
 - ROM/UUU recovery path retained.
 
 NOT YET PROVEN:
 
-- Hardware operation of the quiet USB production candidate at U-Boot commit
-  `1138825790f4712aeadef93f2b73835e2000e153`.
 - That Falcon materially improves total power-to-PowerTune time enough to
   justify further Falcon optimization.
 - Final Linux/userspace boot optimization.
@@ -423,8 +471,9 @@ Before treating a replacement artifact involved in Falcon boot as known-good:
 4. Record its SHA-256.
 5. Know which physical storage domain owns it.
 6. Verify the destination after writing it.
-7. Prove the device boots.
-8. Only then record it as validated in this document. Candidate build evidence
-   may be recorded earlier if it is clearly identified as unvalidated.
+7. Pass cold-power hardware checks and reach usable PowerTune gauges.
+8. Audit failures and only then record it as validated in this document.
+   Candidate build evidence may be recorded earlier if clearly identified as
+   unvalidated.
 
 Hardware reality is authoritative.
